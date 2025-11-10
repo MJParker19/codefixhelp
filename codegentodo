@@ -1,0 +1,87 @@
+package csci366.lmc.whiletran;
+
+import csci366.lmc.whiletran.tree.*;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+public class WhiletranCodeGenerator {
+
+    int labelNum = 0;
+    Set<String> variables = new LinkedHashSet<>();
+    Set<Integer> numbers = new LinkedHashSet<>();
+
+    public String generateCode(WhiletranProgram program) {
+        StringBuilder code = new StringBuilder();
+        generateCode(program, code);
+        code.append("HLT\n");
+        generateData(code);
+        return code.toString();
+    }
+
+    private void generateCode(WhiletranElement elt, StringBuilder code) {
+        if(elt instanceof WhiletranProgram zp) {
+            for (WhiletranStatement child : zp.children()) {
+                generateCode(child, code);
+            }
+        } else if(elt instanceof WriteStatement ws) {
+            generateCode(ws.expression(), code);
+            code.append("OUT\n");
+        } else if(elt instanceof AssignmentStatement as) {
+            // TODO - implement
+        } else if(elt instanceof IfStatement is) {
+            // TODO - implement
+        } else if(elt instanceof DoWhileLoopStatement dl) {
+            // TODO - implement
+        } else if(elt instanceof ConditionalExpression ce) {
+            // TODO - implement
+        } else if(elt instanceof ReadExpression) {
+            // TODO - implement
+        } else if(elt instanceof NumberExpression ne) {
+            // TODO - implement
+        } else if(elt instanceof BooleanExpression be) {
+            // TODO - implement
+        } else if(elt instanceof VariableExpression ie) {
+            // TODO - implement
+        } else if(elt instanceof AdditiveExpression ae) {
+            // TODO - implement
+        } else {
+            throw new IllegalArgumentException("Don't know how to generate code for " + elt);
+        }
+    }
+
+    // adding zero is a no-op, used for labels
+    private String genNoOp() {
+        return " ADD " + getLabelFor(0);
+    }
+
+    private String getLabelFor(int num) {
+        numbers.add(num);
+        return "N_" + ((num < 0) ? "NEG_" : "") + Math.abs(num);
+    }
+
+    private String getLabelFor(WhiletranExpression rhs) {
+        String label;
+        if(rhs instanceof VariableExpression ie) {
+            label = ie.name();
+        } else if (rhs instanceof NumberExpression ne) {
+            label = getLabelFor(ne.num());
+        } else {
+            throw new IllegalStateException("Bad element : " + rhs);
+        }
+        return label;
+    }
+
+    private String nextLabel() {
+        return "LABEL_" + labelNum++;
+    }
+
+    private void generateData(StringBuilder code) {
+        for (Integer number : numbers) {
+            code.append(getLabelFor(number)).append(" DAT ").append(number).append("\n");
+        }
+        for (String variable : variables) {
+            code.append(variable).append(" DAT 0\n");
+        }
+    }
+}
